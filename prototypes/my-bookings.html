@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelClone — My Bookings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #0064D2; --blue-dark: #0052aa; --blue-light: #e8f1fc;
+    --orange: #FF6B00; --success: #00A651; --warning: #F5A623; --error: #D0021B;
+    --bg: #F5F7FA; --card: #FFFFFF; --text: #1A1A2E; --muted: #6B7280;
+    --border: #E5E7EB; --radius: 8px; --radius-lg: 12px; --radius-pill: 24px;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* NAV */
+  .top-bar { background: var(--blue); padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .top-bar-title { color: #fff; font-size: 18px; font-weight: 700; flex: 1; }
+  .top-bar-right { color: rgba(255,255,255,0.8); font-size: 22px; cursor: pointer; }
+
+  /* TABS */
+  .tab-bar { background: var(--card); border-bottom: 1px solid var(--border); display: flex; position: sticky; top: 56px; z-index: 90; }
+  .tab-item { flex: 1; padding: 14px 8px; text-align: center; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-count { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 700; background: var(--blue-light); color: var(--blue); margin-left: 5px; }
+  .tab-count.cancelled { background: #fde8e8; color: var(--error); }
+
+  /* CONTENT */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* BOOKING CARDS */
+  .bookings-list { padding: 16px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 100px; }
+
+  .booking-card { background: var(--card); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+  .card-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
+  .destination-name { font-size: 18px; font-weight: 800; }
+  .booking-dates { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .booking-ref { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: monospace; }
+
+  .status-badge { padding: 5px 12px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .status-confirmed { background: #e8f8ef; color: var(--success); }
+  .status-cancelled { background: #fde8e8; color: var(--error); }
+  .status-pending { background: #fff3e0; color: var(--warning); }
+  .status-past { background: var(--bg); color: var(--muted); }
+
+  .card-body { padding: 14px 16px; }
+  .trip-summary { display: flex; gap: 16px; flex-wrap: wrap; }
+  .trip-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+  .trip-item strong { color: var(--text); font-weight: 600; }
+
+  .card-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .total-label { font-size: 12px; color: var(--muted); }
+  .total-price { font-size: 20px; font-weight: 800; color: var(--text); }
+  .action-btns { display: flex; gap: 8px; }
+  .btn-outline { padding: 9px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; color: var(--text); transition: all 0.2s; }
+  .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+  .btn-danger { padding: 9px 16px; border: 1.5px solid #fca5a5; border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; color: var(--error); transition: all 0.2s; }
+  .btn-danger:hover { background: #fde8e8; }
+
+  /* EXPANDABLE DETAIL */
+  .detail-toggle { width: 100%; padding: 10px 16px; border: none; background: none; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: var(--blue); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; border-top: 1px dashed var(--border); transition: background 0.2s; }
+  .detail-toggle:hover { background: var(--bg); }
+  .detail-toggle .chevron { transition: transform 0.25s; display: inline-block; }
+  .detail-toggle.open .chevron { transform: rotate(180deg); }
+
+  .detail-panel { display: none; padding: 16px; background: var(--bg); border-top: 1px solid var(--border); }
+  .detail-panel.open { display: block; }
+  .detail-section { margin-bottom: 16px; }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-section-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row .key { color: var(--muted); }
+  .detail-row .val { font-weight: 600; color: var(--text); }
+  .policy-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 12px; color: var(--muted); }
+  .policy-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .policy-dot.green { background: var(--success); }
+  .policy-dot.yellow { background: var(--warning); }
+  .policy-dot.grey { background: var(--muted); }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 64px 32px; color: var(--muted); }
+  .empty-state .emoji { font-size: 56px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+  .btn-primary { padding: 13px 28px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  /* CANCEL MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 24px 20px; width: 100%; max-width: 480px; }
+  .modal h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+  .refund-box { background: var(--bg); border-radius: var(--radius); padding: 14px; margin-bottom: 20px; }
+  .refund-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+  .refund-row .label { color: var(--muted); }
+  .refund-row .value { font-weight: 600; }
+  .refund-row.total .label { font-weight: 700; color: var(--text); }
+  .refund-row.total .value { color: var(--success); font-size: 16px; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions button { flex: 1; padding: 13px; border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+  .btn-cancel-confirm { background: var(--error); color: #fff; }
+  .btn-keep { background: var(--bg); color: var(--text); }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0); }
+  .bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; text-decoration: none; color: var(--muted); font-size: 10px; font-weight: 500; }
+  .bottom-nav a.active { color: var(--blue); }
+  .bottom-nav .icon { font-size: 20px; }
+
+  @media (min-width: 768px) {
+    .bookings-list { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
+    .bottom-nav { display: none; }
+    .modal { border-radius: var(--radius-lg); margin: auto; }
+    .modal-overlay { align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="top-bar-title">My Bookings</span>
+  <span class="top-bar-right">🔔</span>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab('upcoming', this)">
+    Upcoming <span class="tab-count">2</span>
+  </div>
+  <div class="tab-item" onclick="switchTab('past', this)">
+    Past <span class="tab-count">3</span>
+  </div>
+  <div class="tab-item" onclick="switchTab('cancelled', this)">
+    Cancelled <span class="tab-count cancelled">1</span>
+  </div>
+</div>
+
+<!-- UPCOMING -->
+<div class="tab-content active" id="tab-upcoming">
+  <div class="bookings-list">
+
+    <!-- Booking 1: Confirmed Bundle -->
+    <div class="booking-card">
+      <div class="card-header">
+        <div>
+          <div class="destination-name">✈️ Gold Coast</div>
+          <div class="booking-dates">Fri 18 Apr → Mon 21 Apr 2026</div>
+          <div class="booking-ref">Ref: TC-2026-GC8821</div>
+        </div>
+        <div class="status-badge status-confirmed">✓ Confirmed</div>
+      </div>
+      <div class="card-body">
+        <div class="trip-summary">
+          <div class="trip-item">✈️ <strong>Jetstar JQ 401</strong></div>
+          <div class="trip-item">🏨 <strong>Surfers Paradise Hotel</strong></div>
+          <div class="trip-item">👤 <strong>1 passenger</strong></div>
+          <div class="trip-item">📦 <strong>Flight + Hotel Bundle</strong></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="total-label">Total paid</div>
+          <div class="total-price">$284</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-danger" onclick="showCancelModal()">Cancel</button>
+          <button class="btn-outline" onclick="toggleDetail('detail-1', this)">View Details ▾</button>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail('detail-1', this)" id="toggle-1">
+        Full itinerary <span class="chevron">▾</span>
+      </button>
+      <div class="detail-panel" id="detail-1">
+        <div class="detail-section">
+          <div class="detail-section-title">✈️ Flight Details</div>
+          <div class="detail-row"><span class="key">Route</span><span class="val">SYD → OOL</span></div>
+          <div class="detail-row"><span class="key">Departure</span><span class="val">Fri 18 Apr · 06:00 SYD</span></div>
+          <div class="detail-row"><span class="key">Arrival</span><span class="val">Fri 18 Apr · 08:10 OOL</span></div>
+          <div class="detail-row"><span class="key">Airline</span><span class="val">Jetstar JQ 401</span></div>
+          <div class="detail-row"><span class="key">Seat</span><span class="val">14B (Window)</span></div>
+          <div class="detail-row"><span class="key">Baggage</span><span class="val">7kg carry-on</span></div>
+          <div class="detail-row"><span class="key">Flight price</span><span class="val">$149</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">🏨 Hotel Details</div>
+          <div class="detail-row"><span class="key">Hotel</span><span class="val">Surfers Paradise Hotel</span></div>
+          <div class="detail-row"><span class="key">Check-in</span><span class="val">Fri 18 Apr from 2:00pm</span></div>
+          <div class="detail-row"><span class="key">Check-out</span><span class="val">Mon 21 Apr by 11:00am</span></div>
+          <div class="detail-row"><span class="key">Room</span><span class="val">Ocean View King</span></div>
+          <div class="detail-row"><span class="key">Hotel price</span><span class="val">$180 (3 nights)</span></div>
+          <div class="detail-row"><span class="key">Bundle discount</span><span class="val" style="color:var(--success)">−$45</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">📋 Cancellation Policy</div>
+          <div class="policy-item"><div class="policy-dot green"></div><span>Free cancellation before <strong>16 Apr 2026</strong> (48h before departure)</span></div>
+          <div class="policy-item"><div class="policy-dot yellow"></div><span>$30 cancellation fee if cancelled within 48 hours</span></div>
+          <div class="policy-item"><div class="policy-dot grey"></div><span>Refunds processed within 5–7 business days</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking 2: Flight Only -->
+    <div class="booking-card">
+      <div class="card-header">
+        <div>
+          <div class="destination-name">✈️ Melbourne</div>
+          <div class="booking-dates">Sat 3 May → Tue 6 May 2026</div>
+          <div class="booking-ref">Ref: TC-2026-ML4432</div>
+        </div>
+        <div class="status-badge status-confirmed">✓ Confirmed</div>
+      </div>
+      <div class="card-body">
+        <div class="trip-summary">
+          <div class="trip-item">✈️ <strong>Virgin Australia VA 821</strong></div>
+          <div class="trip-item">👤 <strong>2 passengers</strong></div>
+          <div class="trip-item">💺 <strong>Economy</strong></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="total-label">Total paid</div>
+          <div class="total-price">$396</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-danger" onclick="showCancelModal()">Cancel</button>
+          <button class="btn-outline" onclick="toggleDetail('detail-2', this)">View Details ▾</button>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail('detail-2', this)" id="toggle-2">
+        Full itinerary <span class="chevron">▾</span>
+      </button>
+      <div class="detail-panel" id="detail-2">
+        <div class="detail-section">
+          <div class="detail-section-title">✈️ Flight Details</div>
+          <div class="detail-row"><span class="key">Route</span><span class="val">SYD → MEL</span></div>
+          <div class="detail-row"><span class="key">Departure</span><span class="val">Sat 3 May · 08:30 SYD</span></div>
+          <div class="detail-row"><span class="key">Arrival</span><span class="val">Sat 3 May · 10:00 MEL</span></div>
+          <div class="detail-row"><span class="key">Airline</span><span class="val">Virgin Australia VA 821</span></div>
+          <div class="detail-row"><span class="key">Passengers</span><span class="val">2 adults</span></div>
+          <div class="detail-row"><span class="key">Baggage</span><span class="val">23kg checked per person</span></div>
+          <div class="detail-row"><span class="key">Price per person</span><span class="val">$198</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">📋 Cancellation Policy</div>
+          <div class="policy-item"><div class="policy-dot green"></div><span>Free cancellation before <strong>1 May 2026</strong> (48h)</span></div>
+          <div class="policy-item"><div class="policy-dot yellow"></div><span>$30 fee per passenger within 48 hours</span></div>
+          <div class="policy-item"><div class="policy-dot grey"></div><span>Refunds within 5–7 business days</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAST -->
+<div class="tab-content" id="tab-past">
+  <div class="bookings-list">
+
+    <div class="booking-card">
+      <div class="card-header">
+        <div>
+          <div class="destination-name">✈️ Brisbane</div>
+          <div class="booking-dates">Fri 7 Feb → Sun 9 Feb 2026</div>
+          <div class="booking-ref">Ref: TC-2026-BN1190</div>
+        </div>
+        <div class="status-badge status-past">Completed</div>
+      </div>
+      <div class="card-body">
+        <div class="trip-summary">
+          <div class="trip-item">✈️ <strong>Qantas QF 501</strong></div>
+          <div class="trip-item">🏨 <strong>W Brisbane</strong></div>
+          <div class="trip-item">👤 <strong>1 passenger</strong></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="total-label">Total paid</div>
+          <div class="total-price">$389</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-outline" onclick="toggleDetail('detail-3', this)">View Details ▾</button>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail('detail-3', this)">
+        Full itinerary <span class="chevron">▾</span>
+      </button>
+      <div class="detail-panel" id="detail-3">
+        <div class="detail-section">
+          <div class="detail-section-title">✈️ Flight Details</div>
+          <div class="detail-row"><span class="key">Route</span><span class="val">SYD → BNE</span></div>
+          <div class="detail-row"><span class="key">Departure</span><span class="val">Fri 7 Feb · 07:00 SYD</span></div>
+          <div class="detail-row"><span class="key">Duration</span><span class="val">1h 30m · Direct</span></div>
+          <div class="detail-row"><span class="key">Price</span><span class="val">$119</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">🏨 Hotel Details</div>
+          <div class="detail-row"><span class="key">Hotel</span><span class="val">W Brisbane</span></div>
+          <div class="detail-row"><span class="key">Duration</span><span class="val">2 nights</span></div>
+          <div class="detail-row"><span class="key">Hotel price</span><span class="val">$270</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="booking-card">
+      <div class="card-header">
+        <div>
+          <div class="destination-name">✈️ Adelaide</div>
+          <div class="booking-dates">Mon 12 Jan → Wed 14 Jan 2026</div>
+          <div class="booking-ref">Ref: TC-2026-AD0822</div>
+        </div>
+        <div class="status-badge status-past">Completed</div>
+      </div>
+      <div class="card-body">
+        <div class="trip-summary">
+          <div class="trip-item">✈️ <strong>Rex ZL 210</strong></div>
+          <div class="trip-item">👤 <strong>1 passenger</strong></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="total-label">Total paid</div>
+          <div class="total-price">$148</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-outline" onclick="toggleDetail('detail-4', this)">View Details ▾</button>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail('detail-4', this)">
+        Full itinerary <span class="chevron">▾</span>
+      </button>
+      <div class="detail-panel" id="detail-4">
+        <div class="detail-section">
+          <div class="detail-section-title">✈️ Flight Details</div>
+          <div class="detail-row"><span class="key">Route</span><span class="val">MEL → ADL</span></div>
+          <div class="detail-row"><span class="key">Departure</span><span class="val">Mon 12 Jan · 09:15 MEL</span></div>
+          <div class="detail-row"><span class="key">Duration</span><span class="val">1h 15m · Direct</span></div>
+          <div class="detail-row"><span class="key">Price</span><span class="val">$148</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="booking-card">
+      <div class="card-header">
+        <div>
+          <div class="destination-name">✈️ Hobart</div>
+          <div class="booking-dates">Thu 20 Nov → Sun 23 Nov 2025</div>
+          <div class="booking-ref">Ref: TC-2025-HB9901</div>
+        </div>
+        <div class="status-badge status-past">Completed</div>
+      </div>
+      <div class="card-body">
+        <div class="trip-summary">
+          <div class="trip-item">✈️ <strong>Jetstar JQ 723</strong></div>
+          <div class="trip-item">🏨 <strong>Islington Hotel</strong></div>
+          <div class="trip-item">📦 <strong>Bundle</strong></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="total-label">Total paid</div>
+          <div class="total-price">$342</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-outline" onclick="toggleDetail('detail-5', this)">View Details ▾</button>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail('detail-5', this)">
+        Full itinerary <span class="chevron">▾</span>
+      </button>
+      <div class="detail-panel" id="detail-5">
+        <div class="detail-section">
+          <div class="detail-section-title">✈️ Flight Details</div>
+          <div class="detail-row"><span class="key">Route</span><span class="val">SYD → HBA</span></div>
+          <div class="detail-row"><span class="key">Duration</span><span class="val">2h 05m · Direct</span></div>
+          <div class="detail-row"><span class="key">Price</span><span class="val">$162</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">🏨 Hotel Details</div>
+          <div class="detail-row"><span class="key">Hotel</span><span class="val">Islington Hotel</span></div>
+          <div class="detail-row"><span class="key">Duration</span><span class="val">3 nights</span></div>
+          <div class="detail-row"><span class="key">Hotel price</span><span class="val">$210</span></div>
+          <div class="detail-row"><span class="key">Bundle discount</span><span class="val" style="color:var(--success)">−$30</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CANCELLED -->
+<div class="tab-content" id="tab-cancelled">
+  <div class="bookings-list">
+
+    <div class="booking-card" style="opacity:0.85">
+      <div class="card-header">
+        <div>
+          <div class="destination-name">✈️ Cairns</div>
+          <div class="booking-dates">Sat 8 Mar → Thu 13 Mar 2026</div>
+          <div class="booking-ref">Ref: TC-2026-CN3310</div>
+        </div>
+        <div class="status-badge status-cancelled">✕ Cancelled</div>
+      </div>
+      <div class="card-body">
+        <div class="trip-summary">
+          <div class="trip-item">✈️ <strong>Qantas QF 935</strong></div>
+          <div class="trip-item">🏨 <strong>Pullman Cairns International</strong></div>
+          <div class="trip-item">👤 <strong>2 passengers</strong></div>
+        </div>
+        <div style="margin-top:10px;padding:10px;background:#fde8e8;border-radius:var(--radius);font-size:12px;color:var(--error);">
+          Cancelled on 5 Mar 2026 · Refund of <strong>$558</strong> processed to Visa •••• 4242
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="total-label">Originally paid</div>
+          <div class="total-price" style="color:var(--muted);text-decoration:line-through">$618</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-outline" onclick="toggleDetail('detail-6', this)">View Details ▾</button>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail('detail-6', this)">
+        Cancellation details <span class="chevron">▾</span>
+      </button>
+      <div class="detail-panel" id="detail-6">
+        <div class="detail-section">
+          <div class="detail-section-title">💳 Refund Summary</div>
+          <div class="detail-row"><span class="key">Original amount</span><span class="val">$618</span></div>
+          <div class="detail-row"><span class="key">Cancellation fee</span><span class="val" style="color:var(--error)">−$60 ($30 × 2 pax)</span></div>
+          <div class="detail-row"><span class="key">Refund amount</span><span class="val" style="color:var(--success)">$558</span></div>
+          <div class="detail-row"><span class="key">Refund method</span><span class="val">Visa •••• 4242</span></div>
+          <div class="detail-row"><span class="key">Status</span><span class="val" style="color:var(--success)">Refunded</span></div>
+          <div class="detail-row"><span class="key">Cancellation ref</span><span class="val" style="font-family:monospace">CXL-2026-9982</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal-overlay" id="cancel-modal" onclick="closeCancelModal(event)">
+  <div class="modal">
+    <h3>Cancel Your Booking?</h3>
+    <p>You're cancelling the Gold Coast trip (Ref: TC-2026-GC8821). Cancellation is within the free window — no fee applies.</p>
+    <div class="refund-box">
+      <div class="refund-row"><span class="label">Amount paid</span><span class="value">$284</span></div>
+      <div class="refund-row"><span class="label">Cancellation fee</span><span class="value" style="color:var(--success)">$0 (free window)</span></div>
+      <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+      <div class="refund-row total"><span class="label">You will receive</span><span class="value" style="color:var(--success)">$284</span></div>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;margin-bottom:0;">Refund to your card within 5–7 business days</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-keep" onclick="closeCancelModal()">Keep Booking</button>
+      <button class="btn-cancel-confirm" onclick="confirmCancel()">Confirm Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="homepage.html"><span class="icon">🏠</span>Home</a>
+  <a href="flight-search-results.html"><span class="icon">🔍</span>Search</a>
+  <a href="my-bookings.html" class="active"><span class="icon">📋</span>Bookings</a>
+  <a href="#"><span class="icon">👤</span>Profile</a>
+</nav>
+
+<script>
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  function toggleDetail(panelId, btn) {
+    const panel = document.getElementById(panelId);
+    const isOpen = panel.classList.toggle('open');
+    // Update all matching toggle buttons for this panel
+    document.querySelectorAll('.detail-toggle').forEach(toggle => {
+      if (toggle.getAttribute('onclick') && toggle.getAttribute('onclick').includes(panelId)) {
+        toggle.classList.toggle('open', isOpen);
+      }
+    });
+  }
+
+  function showCancelModal() {
+    document.getElementById('cancel-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCancelModal(event) {
+    if (!event || event.target === document.getElementById('cancel-modal')) {
+      document.getElementById('cancel-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function confirmCancel() {
+    document.getElementById('cancel-modal').classList.remove('open');
+    document.body.style.overflow = '';
+    alert('Booking cancelled. Refund of $284 will be processed within 5–7 business days. A confirmation email has been sent.');
+  }
+</script>
+</body>
+</html>

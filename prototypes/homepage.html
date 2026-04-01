@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelClone — Deals Find You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-600: #0064D2; --blue-700: #0052aa; --blue-50: #EBF5FF; --blue-100: #D6EBFF;
+    --orange-500: #FF6B00; --orange-600: #E55A00;
+    --green-500: #00A651; --amber-500: #F5A623; --red-500: #D0021B;
+    --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB;
+    --gray-500: #6B7280; --gray-700: #374151; --gray-900: #111827;
+    --white: #FFFFFF;
+    --radius-sm: 6px; --radius: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 9999px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  /* ── SVG Icons (inline) ── */
+  .icon-svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-svg.sm { width: 16px; height: 16px; }
+  .icon-svg.lg { width: 24px; height: 24px; }
+
+  /* ── NAV ── */
+  .nav { background: var(--blue-600); padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: #FFD600; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .nav-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.12); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+  .nav-btn:hover { background: rgba(255,255,255,0.2); }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #FFD600; color: var(--blue-700); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* ── HERO ── */
+  .hero { background: linear-gradient(165deg, #0064D2 0%, #004aad 50%, #002d6b 100%); padding: 28px 16px 0; position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to bottom, transparent, rgba(0,20,60,0.15)); pointer-events: none; }
+  .hero-content { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; }
+  .hero h1 { color: #fff; font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
+  .hero .subtitle { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 20px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; background: rgba(255,255,255,0.1); border-radius: var(--radius-pill); padding: 3px; margin-bottom: 16px; }
+  .tab { flex: 1; padding: 10px 8px; border: none; border-radius: var(--radius-pill); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: rgba(255,255,255,0.65); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .tab:hover { color: rgba(255,255,255,0.9); }
+  .tab.active { background: var(--white); color: var(--blue-600); box-shadow: var(--shadow-sm); }
+  .tab-icon { width: 16px; height: 16px; }
+
+  /* ── SEARCH CARD ── */
+  .search-card { background: var(--white); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 20px 16px 24px; position: relative; z-index: 2; }
+  .field-grid { display: grid; gap: 12px; }
+  .field-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .field input, .field select { width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius); padding: 11px 12px; font-family: inherit; font-size: 14px; color: var(--gray-900); outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: var(--white); -webkit-appearance: none; appearance: none; }
+  .field input:focus, .field select:focus { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(0,100,210,0.1); }
+  .field input::placeholder { color: var(--gray-300); }
+  .btn-search { width: 100%; padding: 13px; background: var(--orange-500); color: #fff; border: none; border-radius: var(--radius-pill); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 16px; transition: background 0.15s, transform 0.1s; }
+  .btn-search:hover { background: var(--orange-600); }
+  .btn-search:active { transform: scale(0.98); }
+
+  /* ── BUDGET WIDGET ── */
+  .budget-widget { background: var(--white); margin: 16px; border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--gray-200); }
+  .budget-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .budget-icon { width: 36px; height: 36px; border-radius: var(--radius); background: var(--blue-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .budget-header h3 { font-size: 15px; font-weight: 700; }
+  .budget-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 16px; padding-left: 46px; }
+  .budget-form { display: grid; grid-template-columns: 1fr 80px 1fr; gap: 8px; align-items: end; }
+  .budget-field label { display: block; font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .budget-field input, .budget-field select { width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius); padding: 10px 12px; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--gray-900); outline: none; background: var(--white); -webkit-appearance: none; }
+  .budget-field input:focus, .budget-field select:focus { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(0,100,210,0.1); }
+  .btn-budget { width: 100%; margin-top: 12px; padding: 12px; background: var(--blue-600); color: #fff; border: none; border-radius: var(--radius-pill); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-budget:hover { background: var(--blue-700); }
+
+  /* ── BANNER ── */
+  .promo-banner { margin: 0 16px; background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .banner-icon { width: 40px; height: 40px; border-radius: var(--radius); background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .banner-text h4 { color: #fff; font-size: 14px; font-weight: 700; }
+  .banner-text p { color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 2px; }
+  .banner-timer { margin-left: auto; background: rgba(0,0,0,0.15); border-radius: var(--radius); padding: 6px 12px; text-align: center; flex-shrink: 0; }
+  .banner-timer .digits { color: #FFD600; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .banner-timer .label { color: rgba(255,255,255,0.65); font-size: 10px; font-weight: 500; }
+
+  /* ── DEALS SECTION ── */
+  .section { padding: 24px 16px 16px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-header h2 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .section-header a { font-size: 13px; color: var(--blue-600); font-weight: 600; text-decoration: none; }
+  .deals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  /* ── DEAL CARD ── */
+  .deal-card { background: var(--white); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  .deal-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--gray-300); }
+  .deal-img { width: 100%; height: 120px; object-fit: cover; display: block; position: relative; overflow: hidden; }
+  .deal-img img { width: 100%; height: 100%; object-fit: cover; }
+  .deal-img-bg { width: 100%; height: 120px; display: flex; align-items: flex-end; padding: 8px; position: relative; background-size: cover; background-position: center; }
+  .deal-img-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.4), transparent 60%); }
+  .deal-img-label { position: relative; z-index: 1; font-size: 10px; font-weight: 700; color: #fff; background: rgba(0,0,0,0.35); backdrop-filter: blur(4px); padding: 3px 8px; border-radius: 4px; letter-spacing: 0.3px; text-transform: uppercase; }
+  .deal-body { padding: 12px; }
+  .deal-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-bottom: 6px; letter-spacing: 0.3px; text-transform: uppercase; }
+  .badge-bundle { background: var(--blue-50); color: var(--blue-600); }
+  .badge-flight { background: #F0FDF4; color: var(--green-500); }
+  .deal-city { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+  .deal-price { font-size: 13px; color: var(--gray-500); }
+  .deal-price strong { color: var(--blue-600); font-size: 18px; font-weight: 800; }
+  .save-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--orange-500); margin-top: 4px; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--gray-200); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0); }
+  .bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 6px; text-decoration: none; color: var(--gray-500); font-size: 10px; font-weight: 500; transition: color 0.15s; }
+  .bottom-nav a.active { color: var(--blue-600); }
+  .bottom-nav a .nav-icon-wrap { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+  .pb-safe { padding-bottom: 80px; }
+
+  /* ── RESPONSIVE ── */
+  @media (min-width: 640px) {
+    .deals-grid { grid-template-columns: repeat(3, 1fr); }
+    .budget-form { grid-template-columns: 1fr 80px 1fr; }
+  }
+  @media (min-width: 768px) {
+    .nav { padding: 0 24px; }
+    .hero { padding: 40px 24px 32px; }
+    .hero h1 { font-size: 34px; }
+    .search-card { max-width: 640px; margin: 0 auto 24px; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+    .field-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .section, .budget-widget, .promo-banner { max-width: 960px; margin-left: auto; margin-right: auto; }
+    .budget-widget { margin: 16px auto; }
+    .promo-banner { margin: 16px auto 0; }
+    .bottom-nav { display: none; }
+    .pb-safe { padding-bottom: 24px; }
+  }
+  @media (min-width: 1024px) {
+    .hero h1 { font-size: 40px; }
+    .deals-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .deal-img-bg { height: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<header class="nav">
+  <div class="logo">Travel<span>Clone</span></div>
+  <div class="nav-actions">
+    <button class="nav-btn" aria-label="Search">
+      <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    </button>
+    <div class="avatar" aria-label="User menu">M</div>
+  </div>
+</header>
+
+<!-- Hero + Search -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Where do you<br>want to go?</h1>
+    <p class="subtitle">Deals curated for Sydney travellers this weekend</p>
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" onclick="switchTab(this,'flights')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1L11 12l-2 3H6l-1 1 3 2 2 3 1-1v-3l3-2 3.8 7.3c.2.4.7.5 1.1.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+        Flights
+      </button>
+      <button class="tab" role="tab" onclick="switchTab(this,'hotels')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4M4 21V10.7M20 21V10.7"/></svg>
+        Hotels
+      </button>
+      <button class="tab" role="tab" onclick="switchTab(this,'bundles')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
+        Bundles
+      </button>
+    </div>
+
+    <!-- Search Forms -->
+    <div class="search-card">
+      <div id="tab-flights">
+        <div class="field-grid">
+          <div class="field-2col">
+            <div class="field">
+              <label for="from">From</label>
+              <select id="from"><option>Sydney (SYD)</option><option>Melbourne (MEL)</option><option>Brisbane (BNE)</option><option>Perth (PER)</option></select>
+            </div>
+            <div class="field">
+              <label for="to">To</label>
+              <input id="to" type="text" placeholder="Where to?">
+            </div>
+          </div>
+          <div class="field-2col">
+            <div class="field">
+              <label for="depart">Depart</label>
+              <input id="depart" type="date" value="2026-04-18">
+            </div>
+            <div class="field">
+              <label for="return">Return</label>
+              <input id="return" type="date" value="2026-04-21">
+            </div>
+          </div>
+          <div class="field">
+            <label for="pax">Passengers</label>
+            <select id="pax"><option>1 Adult</option><option>2 Adults</option><option>2 Adults, 1 Child</option></select>
+          </div>
+        </div>
+        <button class="btn-search" onclick="location.href='flight-search-results.html'">Search Flights</button>
+      </div>
+
+      <div id="tab-hotels" style="display:none">
+        <div class="field-grid">
+          <div class="field">
+            <label>Destination</label>
+            <input type="text" placeholder="City or hotel name...">
+          </div>
+          <div class="field-2col">
+            <div class="field"><label>Check-in</label><input type="date" value="2026-04-18"></div>
+            <div class="field"><label>Check-out</label><input type="date" value="2026-04-21"></div>
+          </div>
+          <div class="field">
+            <label>Guests & Rooms</label>
+            <select><option>2 Guests, 1 Room</option><option>1 Guest, 1 Room</option><option>3 Guests, 2 Rooms</option></select>
+          </div>
+        </div>
+        <button class="btn-search">Search Hotels</button>
+      </div>
+
+      <div id="tab-bundles" style="display:none">
+        <div class="field-grid">
+          <div class="field-2col">
+            <div class="field"><label>From</label><select><option>Sydney (SYD)</option><option>Melbourne (MEL)</option></select></div>
+            <div class="field"><label>To</label><input type="text" placeholder="Destination"></div>
+          </div>
+          <div class="field-2col">
+            <div class="field"><label>Depart</label><input type="date" value="2026-04-18"></div>
+            <div class="field"><label>Return</label><input type="date" value="2026-04-21"></div>
+          </div>
+        </div>
+        <button class="btn-search" onclick="location.href='booking-flow.html'">Search Bundles</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Budget Discovery Widget -->
+<div class="budget-widget">
+  <div class="budget-header">
+    <div class="budget-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0064D2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-3"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+    </div>
+    <h3>Where can your budget take you?</h3>
+  </div>
+  <p class="budget-desc">Enter your budget and we'll find the best getaways</p>
+  <div class="budget-form">
+    <div class="budget-field">
+      <label>Budget (A$)</label>
+      <input type="number" value="500" min="100" step="50">
+    </div>
+    <div class="budget-field">
+      <label>Days</label>
+      <input type="number" value="3" min="1" max="30">
+    </div>
+    <div class="budget-field">
+      <label>From</label>
+      <select><option>Sydney</option><option>Melbourne</option><option>Brisbane</option><option>Perth</option><option>Adelaide</option></select>
+    </div>
+  </div>
+  <button class="btn-budget" onclick="location.href='budget-discovery.html'">
+    Show Me Destinations
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- Promo Banner -->
+<div class="promo-banner">
+  <div class="banner-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </div>
+  <div class="banner-text">
+    <h4>Weekend Getaway Deals</h4>
+    <p>Book by Friday midnight — prices rise Saturday</p>
+  </div>
+  <div class="banner-timer">
+    <div class="digits" id="countdown">47:23</div>
+    <div class="label">hrs left</div>
+  </div>
+</div>
+
+<!-- Deals Section -->
+<section class="section pb-safe">
+  <div class="section-header">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange-500)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Hot Deals from Sydney
+    </h2>
+    <a href="#">See all</a>
+  </div>
+  <div class="deals-grid">
+
+    <div class="deal-card" onclick="location.href='flight-search-results.html'">
+      <div class="deal-img-bg" style="background-image:url('https://images.unsplash.com/photo-1514395462725-fb4566210144?w=400&h=250&fit=crop')">
+        <span class="deal-img-label">Flight + Hotel</span>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badge badge-bundle">Bundle</div>
+        <div class="deal-city">Melbourne</div>
+        <div class="deal-price">from <strong>$189</strong></div>
+        <div class="save-tag">Save $45</div>
+      </div>
+    </div>
+
+    <div class="deal-card" onclick="location.href='flight-search-results.html'">
+      <div class="deal-img-bg" style="background-image:url('https://images.unsplash.com/photo-1536244636800-a3f74db0f3cf?w=400&h=250&fit=crop')">
+        <span class="deal-img-label">Flight only</span>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badge badge-flight">Flight</div>
+        <div class="deal-city">Gold Coast</div>
+        <div class="deal-price">from <strong>$149</strong></div>
+        <div class="save-tag">Save $30</div>
+      </div>
+    </div>
+
+    <div class="deal-card" onclick="location.href='flight-search-results.html'">
+      <div class="deal-img-bg" style="background-image:url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&h=250&fit=crop')">
+        <span class="deal-img-label">Flight + Hotel</span>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badge badge-bundle">Bundle</div>
+        <div class="deal-city">Bali</div>
+        <div class="deal-price">from <strong>$299</strong></div>
+        <div class="save-tag">Save $80</div>
+      </div>
+    </div>
+
+    <div class="deal-card">
+      <div class="deal-img-bg" style="background-image:url('https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400&h=250&fit=crop')">
+        <span class="deal-img-label">Flight only</span>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badge badge-flight">Flight</div>
+        <div class="deal-city">Cairns</div>
+        <div class="deal-price">from <strong>$219</strong></div>
+        <div class="save-tag">Save $25</div>
+      </div>
+    </div>
+
+    <div class="deal-card">
+      <div class="deal-img-bg" style="background-image:url('https://images.unsplash.com/photo-1609952048180-7b35ea6b083b?w=400&h=250&fit=crop')">
+        <span class="deal-img-label">Flight + Hotel</span>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badge badge-bundle">Bundle</div>
+        <div class="deal-city">Perth</div>
+        <div class="deal-price">from <strong>$329</strong></div>
+        <div class="save-tag">Save $55</div>
+      </div>
+    </div>
+
+    <div class="deal-card">
+      <div class="deal-img-bg" style="background-image:url('https://images.unsplash.com/photo-1524293581917-878a6d017c71?w=400&h=250&fit=crop')">
+        <span class="deal-img-label">Flight only</span>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badge badge-flight">Flight</div>
+        <div class="deal-city">Brisbane</div>
+        <div class="deal-price">from <strong>$119</strong></div>
+        <div class="save-tag">Save $20</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Bottom Navigation (Mobile) -->
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a href="homepage.html" class="active">
+    <span class="nav-icon-wrap"><svg class="icon-svg" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+    Home
+  </a>
+  <a href="flight-search-results.html">
+    <span class="nav-icon-wrap"><svg class="icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+    Search
+  </a>
+  <a href="my-bookings.html">
+    <span class="nav-icon-wrap"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/></svg></span>
+    Bookings
+  </a>
+  <a href="#">
+    <span class="nav-icon-wrap"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    Profile
+  </a>
+</nav>
+
+<script>
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['flights','hotels','bundles'].forEach(name => {
+      const el = document.getElementById('tab-' + name);
+      if (el) el.style.display = name === tabId ? 'block' : 'none';
+    });
+  }
+
+  // Countdown timer
+  let totalSeconds = 47 * 3600 + 23 * 60;
+  function updateCountdown() {
+    if (totalSeconds <= 0) return;
+    totalSeconds--;
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const el = document.getElementById('countdown');
+    if (el) el.textContent = String(hrs).padStart(2,'0') + ':' + String(mins).padStart(2,'0');
+  }
+  setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>

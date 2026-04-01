@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelClone — Budget Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #0064D2; --blue-dark: #0052aa; --blue-light: #e8f1fc;
+    --orange: #FF6B00; --success: #00A651; --warning: #F5A623;
+    --bg: #F5F7FA; --card: #FFFFFF; --text: #1A1A2E; --muted: #6B7280;
+    --border: #E5E7EB; --radius: 8px; --radius-lg: 12px; --radius-pill: 24px;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* NAV */
+  nav { background: var(--blue); padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: #FFD600; }
+  .back-link { color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+
+  /* HERO */
+  .hero { background: linear-gradient(160deg, #0064D2 0%, #0040a0 100%); padding: 32px 16px 40px; text-align: center; }
+  .hero h1 { color: #fff; font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; }
+  .hero p { color: rgba(255,255,255,0.8); font-size: 14px; }
+
+  /* FORM CARD */
+  .form-card { background: var(--card); border-radius: var(--radius-lg); padding: 20px 16px; margin: -24px 16px 0; box-shadow: 0 4px 24px rgba(0,0,0,0.12); position: relative; z-index: 10; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .field input, .field select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); outline: none; transition: border-color 0.2s; background: #fff; appearance: none; }
+  .field input:focus, .field select:focus { border-color: var(--blue); }
+  .input-prefix-wrap { position: relative; }
+  .input-prefix-wrap .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 700; color: var(--muted); pointer-events: none; }
+  .input-prefix-wrap input { padding-left: 36px; }
+  .btn-search { width: 100%; padding: 14px; background: var(--orange); color: #fff; border: none; border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .btn-search:hover { background: #e55a00; }
+
+  /* RESULTS HEADER */
+  .results-header { padding: 20px 16px 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .results-header h2 { font-size: 16px; font-weight: 700; }
+  .results-header .result-count { font-size: 13px; color: var(--muted); }
+
+  .sort-chips { padding: 0 16px 12px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .sort-chips::-webkit-scrollbar { display: none; }
+  .sort-chip { padding: 7px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; border: 1.5px solid var(--border); background: #fff; color: var(--text); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .sort-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* DESTINATION CARDS */
+  .destinations-grid { padding: 0 16px 100px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+
+  .dest-card { background: var(--card); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  .dest-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+  .dest-image { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 48px; position: relative; }
+  .dest-country-badge { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.45); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill); backdrop-filter: blur(4px); }
+  .value-badge { position: absolute; top: 12px; right: 12px; background: var(--success); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill); }
+
+  .dest-body { padding: 16px; }
+  .dest-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .dest-name { font-size: 18px; font-weight: 800; }
+  .dest-country { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .dest-price-block { text-align: right; }
+  .dest-price-from { font-size: 11px; color: var(--muted); }
+  .dest-price { font-size: 22px; font-weight: 800; color: var(--blue); line-height: 1; }
+  .dest-price-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .dest-breakdown { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .breakdown-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+  .breakdown-item strong { color: var(--text); font-weight: 600; }
+
+  /* BUDGET BAR */
+  .budget-bar-wrap { margin-bottom: 4px; }
+  .budget-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+  .budget-bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .budget-bar-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width 0.5s ease; }
+  .budget-bar-fill.high { background: var(--warning); }
+  .budget-bar-fill.over { background: var(--error, #D0021B); }
+
+  .btn-view { width: 100%; margin-top: 14px; padding: 12px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .btn-view:hover { background: var(--blue-dark); }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0); }
+  .bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; text-decoration: none; color: var(--muted); font-size: 10px; font-weight: 500; }
+  .bottom-nav a.active { color: var(--blue); }
+  .bottom-nav .icon { font-size: 20px; }
+
+  @media (min-width: 640px) {
+    .destinations-grid { grid-template-columns: 1fr 1fr; }
+    .form-card, .results-header, .sort-chips, .destinations-grid { max-width: 960px; margin-left: auto; margin-right: auto; }
+    .form-card { margin: -24px auto 0; }
+  }
+  @media (min-width: 1024px) {
+    .destinations-grid { grid-template-columns: repeat(3, 1fr); }
+    .bottom-nav { display: none; }
+    .destinations-grid { padding-bottom: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Travel<span>Clone</span></div>
+  <a href="homepage.html" class="back-link">← Home</a>
+</nav>
+
+<div class="hero">
+  <h1>Where can your<br>budget take you?</h1>
+  <p>Enter your budget — we'll find the best getaways</p>
+</div>
+
+<div class="form-card">
+  <div class="form-grid">
+    <div class="field">
+      <label>My Budget</label>
+      <div class="input-prefix-wrap">
+        <span class="prefix">A$</span>
+        <input type="number" id="budget" value="500" min="100" step="50">
+      </div>
+    </div>
+    <div class="field">
+      <label>Duration</label>
+      <select id="duration">
+        <option value="3">3 days</option>
+        <option value="5" selected>5 days</option>
+        <option value="7">7 days</option>
+        <option value="10">10 days</option>
+        <option value="14">14 days</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Flying From</label>
+      <select id="origin">
+        <option>Sydney</option>
+        <option selected>Melbourne</option>
+        <option>Brisbane</option>
+        <option>Perth</option>
+        <option>Adelaide</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Travel Dates (Optional)</label>
+      <input type="month" value="2026-05">
+    </div>
+  </div>
+  <button class="btn-search" onclick="runSearch()">Find My Getaways →</button>
+</div>
+
+<div class="results-header">
+  <div>
+    <h2>🎯 Destinations in budget</h2>
+    <div class="result-count" id="result-count">6 destinations found for A$500 · 5 days from Melbourne</div>
+  </div>
+</div>
+
+<div class="sort-chips">
+  <div class="sort-chip active" onclick="sortBy(this, 'cheapest')">Cheapest first</div>
+  <div class="sort-chip" onclick="sortBy(this, 'value')">Best value</div>
+  <div class="sort-chip" onclick="sortBy(this, 'closest')">Closest</div>
+  <div class="sort-chip" onclick="sortBy(this, 'warmest')">Warmest weather</div>
+</div>
+
+<div class="destinations-grid" id="results-grid">
+
+  <div class="dest-card" onclick="location.href='flight-search-results.html'">
+    <div class="dest-image" style="background:linear-gradient(135deg,#f093fb,#f5576c)">
+      🌊
+      <div class="dest-country-badge">🇦🇺 Australia</div>
+    </div>
+    <div class="dest-body">
+      <div class="dest-top">
+        <div>
+          <div class="dest-name">Gold Coast</div>
+          <div class="dest-country">Queensland, Australia</div>
+        </div>
+        <div class="dest-price-block">
+          <div class="dest-price-from">from</div>
+          <div class="dest-price">$310</div>
+          <div class="dest-price-detail">total trip</div>
+        </div>
+      </div>
+      <div class="dest-breakdown">
+        <div class="breakdown-item">✈️ <strong>$130</strong> flight</div>
+        <div class="breakdown-item">🏨 <strong>$180</strong> hotel</div>
+        <div class="breakdown-item">⏱️ <strong>2h 10m</strong> flight</div>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>Budget used</span>
+          <span>$310 of $500 (62%)</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" style="width:62%"></div>
+        </div>
+      </div>
+      <button class="btn-view">View Trip →</button>
+    </div>
+  </div>
+
+  <div class="dest-card" onclick="location.href='flight-search-results.html'">
+    <div class="dest-image" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">
+      🐚
+      <div class="dest-country-badge">🇦🇺 Australia</div>
+      <div class="value-badge">Best Value</div>
+    </div>
+    <div class="dest-body">
+      <div class="dest-top">
+        <div>
+          <div class="dest-name">Adelaide</div>
+          <div class="dest-country">South Australia</div>
+        </div>
+        <div class="dest-price-block">
+          <div class="dest-price-from">from</div>
+          <div class="dest-price">$290</div>
+          <div class="dest-price-detail">total trip</div>
+        </div>
+      </div>
+      <div class="dest-breakdown">
+        <div class="breakdown-item">✈️ <strong>$110</strong> flight</div>
+        <div class="breakdown-item">🏨 <strong>$180</strong> hotel</div>
+        <div class="breakdown-item">⏱️ <strong>1h 15m</strong> flight</div>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>Budget used</span>
+          <span>$290 of $500 (58%)</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" style="width:58%"></div>
+        </div>
+      </div>
+      <button class="btn-view">View Trip →</button>
+    </div>
+  </div>
+
+  <div class="dest-card" onclick="location.href='flight-search-results.html'">
+    <div class="dest-image" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">
+      🏝️
+      <div class="dest-country-badge">🇮🇩 Indonesia</div>
+    </div>
+    <div class="dest-body">
+      <div class="dest-top">
+        <div>
+          <div class="dest-name">Bali</div>
+          <div class="dest-country">Indonesia</div>
+        </div>
+        <div class="dest-price-block">
+          <div class="dest-price-from">from</div>
+          <div class="dest-price">$420</div>
+          <div class="dest-price-detail">total trip</div>
+        </div>
+      </div>
+      <div class="dest-breakdown">
+        <div class="breakdown-item">✈️ <strong>$280</strong> flight</div>
+        <div class="breakdown-item">🏨 <strong>$140</strong> hotel</div>
+        <div class="breakdown-item">⏱️ <strong>5h 40m</strong> flight</div>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>Budget used</span>
+          <span>$420 of $500 (84%)</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill high" style="width:84%"></div>
+        </div>
+      </div>
+      <button class="btn-view">View Trip →</button>
+    </div>
+  </div>
+
+  <div class="dest-card" onclick="location.href='flight-search-results.html'">
+    <div class="dest-image" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)">
+      🌆
+      <div class="dest-country-badge">🇦🇺 Australia</div>
+    </div>
+    <div class="dest-body">
+      <div class="dest-top">
+        <div>
+          <div class="dest-name">Sydney</div>
+          <div class="dest-country">New South Wales</div>
+        </div>
+        <div class="dest-price-block">
+          <div class="dest-price-from">from</div>
+          <div class="dest-price">$340</div>
+          <div class="dest-price-detail">total trip</div>
+        </div>
+      </div>
+      <div class="dest-breakdown">
+        <div class="breakdown-item">✈️ <strong>$130</strong> flight</div>
+        <div class="breakdown-item">🏨 <strong>$210</strong> hotel</div>
+        <div class="breakdown-item">⏱️ <strong>1h 30m</strong> flight</div>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>Budget used</span>
+          <span>$340 of $500 (68%)</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" style="width:68%"></div>
+        </div>
+      </div>
+      <button class="btn-view">View Trip →</button>
+    </div>
+  </div>
+
+  <div class="dest-card" onclick="location.href='flight-search-results.html'">
+    <div class="dest-image" style="background:linear-gradient(135deg,#fa709a,#fee140)">
+      🦘
+      <div class="dest-country-badge">🇦🇺 Australia</div>
+    </div>
+    <div class="dest-body">
+      <div class="dest-top">
+        <div>
+          <div class="dest-name">Cairns</div>
+          <div class="dest-country">Queensland, Australia</div>
+        </div>
+        <div class="dest-price-block">
+          <div class="dest-price-from">from</div>
+          <div class="dest-price">$490</div>
+          <div class="dest-price-detail">total trip</div>
+        </div>
+      </div>
+      <div class="dest-breakdown">
+        <div class="breakdown-item">✈️ <strong>$350</strong> flight</div>
+        <div class="breakdown-item">🏨 <strong>$140</strong> hotel</div>
+        <div class="breakdown-item">⏱️ <strong>3h 20m</strong> flight</div>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>Budget used</span>
+          <span>$490 of $500 (98%)</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill high" style="width:98%"></div>
+        </div>
+      </div>
+      <button class="btn-view">View Trip →</button>
+    </div>
+  </div>
+
+  <div class="dest-card" onclick="location.href='flight-search-results.html'">
+    <div class="dest-image" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+      🏯
+      <div class="dest-country-badge">🇯🇵 Japan</div>
+    </div>
+    <div class="dest-body">
+      <div class="dest-top">
+        <div>
+          <div class="dest-name">Tokyo</div>
+          <div class="dest-country">Japan · Slightly over budget</div>
+        </div>
+        <div class="dest-price-block">
+          <div class="dest-price-from">from</div>
+          <div class="dest-price" style="color:var(--warning)">$620</div>
+          <div class="dest-price-detail">total trip</div>
+        </div>
+      </div>
+      <div class="dest-breakdown">
+        <div class="breakdown-item">✈️ <strong>$420</strong> flight</div>
+        <div class="breakdown-item">🏨 <strong>$200</strong> hotel</div>
+        <div class="breakdown-item">⏱️ <strong>9h 50m</strong> flight</div>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>Over budget by $120</span>
+          <span style="color:var(--warning)">124%</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill over" style="width:100%"></div>
+        </div>
+      </div>
+      <button class="btn-view" style="background:var(--muted)">View Anyway →</button>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="homepage.html"><span class="icon">🏠</span>Home</a>
+  <a href="flight-search-results.html"><span class="icon">🔍</span>Search</a>
+  <a href="my-bookings.html"><span class="icon">📋</span>Bookings</a>
+  <a href="#"><span class="icon">👤</span>Profile</a>
+</nav>
+
+<script>
+  function runSearch() {
+    const budget = document.getElementById('budget').value;
+    const duration = document.getElementById('duration').value;
+    const origin = document.getElementById('origin').value;
+    document.getElementById('result-count').textContent =
+      '6 destinations found for A$' + budget + ' · ' + duration + ' days from ' + origin;
+  }
+
+  function sortBy(chip, key) {
+    document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelClone — Book Your Trip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #0064D2; --blue-dark: #0052aa; --blue-light: #e8f1fc;
+    --orange: #FF6B00; --success: #00A651; --warning: #F5A623;
+    --bg: #F5F7FA; --card: #FFFFFF; --text: #1A1A2E; --muted: #6B7280;
+    --border: #E5E7EB; --radius: 8px; --radius-lg: 12px; --radius-pill: 24px;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* TOP BAR */
+  .top-bar { background: var(--blue); padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 4px 8px 4px 0; }
+  .top-bar-title { color: #fff; font-size: 16px; font-weight: 700; }
+
+  /* STEP INDICATOR */
+  .steps { background: #fff; padding: 16px; border-bottom: 1px solid var(--border); }
+  .step-row { display: flex; align-items: center; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid var(--border); color: var(--muted); background: #fff; transition: all 0.3s; }
+  .step-circle.done { background: var(--success); border-color: var(--success); color: #fff; }
+  .step-circle.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .step-label { font-size: 10px; font-weight: 600; color: var(--muted); text-align: center; }
+  .step-label.active { color: var(--blue); }
+  .step-label.done { color: var(--success); }
+  .step-connector { flex: 1; height: 2px; background: var(--border); margin: 0 4px; margin-bottom: 18px; }
+  .step-connector.done { background: var(--success); }
+
+  /* MAIN LAYOUT */
+  .layout { padding: 16px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 100px; }
+
+  /* FLIGHT SUMMARY */
+  .flight-summary { background: var(--card); border-radius: var(--radius-lg); padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid var(--blue); }
+  .summary-label { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .summary-route { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .summary-time { font-size: 20px; font-weight: 800; }
+  .summary-arrow { color: var(--muted); font-size: 16px; }
+  .summary-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: var(--muted); }
+  .meta-item strong { color: var(--text); font-weight: 600; }
+
+  /* SECTION CARD */
+  .section-card { background: var(--card); border-radius: var(--radius-lg); padding: 20px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* FORM */
+  .form-grid { display: flex; flex-direction: column; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .field input, .field select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); outline: none; transition: border-color 0.2s; background: #fff; }
+  .field input:focus, .field select:focus { border-color: var(--blue); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* HOTEL UPSELL */
+  .hotel-upsell { background: var(--card); border-radius: var(--radius-lg); padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid #e8f8ef; }
+  .upsell-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .upsell-title { font-size: 14px; font-weight: 700; }
+  .badge-save { background: #e8f8ef; color: var(--success); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill); }
+  .hotel-card-inner { display: flex; gap: 12px; align-items: flex-start; }
+  .hotel-thumb { width: 64px; height: 64px; border-radius: var(--radius); background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .hotel-info .hotel-name { font-size: 14px; font-weight: 700; }
+  .hotel-info .hotel-location { font-size: 12px; color: var(--muted); margin: 2px 0; }
+  .hotel-info .hotel-rating { font-size: 12px; color: var(--warning); }
+  .hotel-info .hotel-price { font-size: 13px; margin-top: 4px; }
+  .hotel-info .hotel-price strong { color: var(--blue); font-size: 16px; font-weight: 700; }
+  .hotel-toggle { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+  .toggle-track::after { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+  .toggle-switch input:checked + .toggle-track { background: var(--success); }
+  .toggle-switch input:checked + .toggle-track::after { transform: translateX(20px); }
+  .toggle-label { font-size: 13px; font-weight: 600; }
+  .toggle-sub { font-size: 11px; color: var(--muted); }
+
+  /* PRICE BREAKDOWN */
+  .price-card { background: var(--card); border-radius: var(--radius-lg); padding: 20px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .price-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; }
+  .price-row .label { color: var(--muted); }
+  .price-row .value { font-weight: 600; }
+  .price-row.discount .value { color: var(--success); }
+  .price-divider { height: 1px; background: var(--border); margin: 4px 0; }
+  .price-total { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; }
+  .price-total .label { font-size: 15px; font-weight: 700; }
+  .price-total .amount { font-size: 24px; font-weight: 800; color: var(--blue); }
+
+  /* CTA */
+  .cta-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border); padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 960px; margin: 0 auto; }
+  .cta-price { font-size: 13px; color: var(--muted); }
+  .cta-price strong { display: block; font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+  .btn-continue { background: var(--orange); color: #fff; border: none; border-radius: var(--radius-pill); padding: 14px 28px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+  .btn-continue:hover { background: #e55a00; }
+
+  @media (min-width: 768px) {
+    .layout { flex-direction: row; align-items: flex-start; max-width: 960px; margin: 0 auto; }
+    .layout .left-col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .layout .right-col { width: 320px; flex-shrink: 0; position: sticky; top: 80px; display: flex; flex-direction: column; gap: 16px; }
+    .top-bar, .steps { max-width: 100%; }
+    .cta-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <span class="top-bar-title">Complete Your Booking</span>
+</div>
+
+<!-- Step Indicator -->
+<div class="steps">
+  <div class="step-row">
+    <div class="step">
+      <div class="step-circle done">✓</div>
+      <div class="step-label done">Search</div>
+    </div>
+    <div class="step-connector done"></div>
+    <div class="step">
+      <div class="step-circle active">2</div>
+      <div class="step-label active">Details</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-circle">3</div>
+      <div class="step-label">Payment</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="left-col">
+
+    <!-- Flight Summary -->
+    <div class="flight-summary">
+      <div class="summary-label">✈️ Selected Flight</div>
+      <div class="summary-route">
+        <div class="summary-time">06:00</div>
+        <div class="summary-arrow">→</div>
+        <div class="summary-time">07:25</div>
+      </div>
+      <div class="summary-meta">
+        <div class="meta-item">Airline: <strong>Jetstar JQ 401</strong></div>
+        <div class="meta-item">Route: <strong>SYD → MEL</strong></div>
+        <div class="meta-item">Date: <strong>Fri 15 Apr 2026</strong></div>
+        <div class="meta-item">Class: <strong>Economy</strong></div>
+        <div class="meta-item">Duration: <strong>1h 25m · Direct</strong></div>
+      </div>
+    </div>
+
+    <!-- Passenger Details -->
+    <div class="section-card">
+      <div class="section-title">👤 Passenger Details</div>
+      <div class="form-grid">
+        <div class="field-row">
+          <div class="field">
+            <label>First Name</label>
+            <input type="text" placeholder="Mia" value="Mia">
+          </div>
+          <div class="field">
+            <label>Last Name</label>
+            <input type="text" placeholder="Johnson" value="Johnson">
+          </div>
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" placeholder="mia@email.com" value="mia@email.com">
+          <div class="field-hint">Booking confirmation will be sent here</div>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" placeholder="+61 400 000 000" value="+61 412 345 678">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Date of Birth</label>
+            <input type="date" value="2001-05-14">
+          </div>
+          <div class="field">
+            <label>Passport / ID</label>
+            <input type="text" placeholder="PA1234567">
+          </div>
+        </div>
+        <div class="field">
+          <label>Nationality</label>
+          <select>
+            <option>Australian</option>
+            <option>New Zealander</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hotel Upsell -->
+    <div class="hotel-upsell">
+      <div class="upsell-header">
+        <div class="upsell-title">🏨 Add a Hotel — Save More</div>
+        <div class="badge-save">Save $45</div>
+      </div>
+      <div class="hotel-card-inner">
+        <div class="hotel-thumb">🏨</div>
+        <div class="hotel-info">
+          <div class="hotel-name">The Langham Melbourne</div>
+          <div class="hotel-location">📍 Southbank, Melbourne CBD</div>
+          <div class="hotel-rating">★★★★★ 4.8 (2,341 reviews)</div>
+          <div class="hotel-price">2 nights from <strong>$180</strong></div>
+        </div>
+      </div>
+      <div class="hotel-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="hotel-toggle" onchange="updateTotal(this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+        <div>
+          <div class="toggle-label">Add hotel to my booking</div>
+          <div class="toggle-sub">Bundle discount applied automatically</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end left-col -->
+
+  <div class="right-col">
+    <!-- Price Breakdown -->
+    <div class="price-card">
+      <div class="section-title">💰 Price Summary</div>
+      <div class="price-row">
+        <span class="label">Flight (Jetstar JQ 401)</span>
+        <span class="value">$149</span>
+      </div>
+      <div class="price-row" id="hotel-row" style="display:none">
+        <span class="label">Hotel (2 nights)</span>
+        <span class="value">$180</span>
+      </div>
+      <div class="price-row discount" id="discount-row" style="display:none">
+        <span class="label">Bundle discount</span>
+        <span class="value">−$45</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Taxes &amp; fees</span>
+        <span class="value">$18</span>
+      </div>
+      <div class="price-divider"></div>
+      <div class="price-total">
+        <span class="label">Total</span>
+        <span class="amount" id="total-price">$167</span>
+      </div>
+      <button class="btn-continue" style="width:100%;margin-top:16px" onclick="goToPayment()">
+        Continue to Payment →
+      </button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">
+        🔒 Secure checkout · No hidden fees
+      </p>
+    </div>
+
+    <!-- Cancellation Policy -->
+    <div class="section-card" style="font-size:13px;">
+      <div class="section-title" style="font-size:13px;margin-bottom:10px;">📋 Cancellation Policy</div>
+      <div style="display:flex;flex-direction:column;gap:8px;color:var(--muted);">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--success);flex-shrink:0;">✓</span>
+          <span>Free cancellation before <strong>13 Apr 2026</strong> (48h)</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--warning);flex-shrink:0;">!</span>
+          <span>$30 fee if cancelled within 48 hours of departure</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--muted);flex-shrink:0;">i</span>
+          <span>Refunds processed within 5–7 business days</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- end right-col -->
+</div>
+
+<!-- Mobile CTA Bar -->
+<div class="cta-bar">
+  <div class="cta-inner">
+    <div class="cta-price">
+      Total
+      <strong id="mobile-total">$167</strong>
+    </div>
+    <button class="btn-continue" onclick="goToPayment()">Continue to Payment →</button>
+  </div>
+</div>
+
+<script>
+  function updateTotal(includeHotel) {
+    const hotelRow = document.getElementById('hotel-row');
+    const discountRow = document.getElementById('discount-row');
+    const totalEl = document.getElementById('total-price');
+    const mobileTotal = document.getElementById('mobile-total');
+    const flightPrice = 149;
+    const taxes = 18;
+    let total = flightPrice + taxes;
+
+    if (includeHotel) {
+      hotelRow.style.display = 'flex';
+      discountRow.style.display = 'flex';
+      total += 180 - 45;
+    } else {
+      hotelRow.style.display = 'none';
+      discountRow.style.display = 'none';
+    }
+
+    const formatted = '$' + total;
+    totalEl.textContent = formatted;
+    mobileTotal.textContent = formatted;
+  }
+
+  function goToPayment() {
+    // Simulate moving to step 3
+    alert('Proceeding to payment... (Step 3 — Stripe checkout would load here)');
+  }
+</script>
+</body>
+</html>

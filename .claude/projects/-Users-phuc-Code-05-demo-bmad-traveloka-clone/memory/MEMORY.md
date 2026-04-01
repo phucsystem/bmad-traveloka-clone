@@ -1,0 +1,2 @@
+- [User Profile](user_profile.md) — Phuc: pragmatic developer, TravelClone startup, prefers speed
+- [Skip Confirmations](feedback_skip_confirmations.md) — Execute multi-step workflows autonomously, don't pause at every gate
