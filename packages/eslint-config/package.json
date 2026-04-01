@@ -1,0 +1,12 @@
+{
+  "name": "@repo/eslint-config",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "files": ["base.js", "next.js", "nestjs.js"],
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint-config-next": "15.0.0"
+  }
+}
