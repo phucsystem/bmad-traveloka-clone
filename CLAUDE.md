@@ -3,6 +3,13 @@
 ## Workflows
 For complicated tasks, spawn multiple agents (2-5) in parallel to maximize throughput. Use sequential chaining when tasks have dependencies.
 
+### Dev Story Workflow (MANDATORY)
+Every dev story MUST include tests. Follow this sequence:
+1. **Before implementation**: Ensure tests exist for the story's acceptance criteria. If no tests exist, write them first (unit + integration as appropriate). Tests should initially fail (TDD red phase).
+2. **During implementation**: Write code to make tests pass (TDD green phase).
+3. **After implementation**: Run `pnpm turbo test` to verify all tests pass. Fix any failures before marking the story as done.
+4. **Never skip tests**: Do not mark a dev story as complete without passing tests. No mocks, fakes, or shortcuts to force tests to pass.
+
 ## Project Overview
 TravelClone is a travel booking PWA for young Australian budget travelers (18-35). Promotion-first discovery, budget-first search, 3-step booking flow. Internal MVP phase.
 
@@ -50,7 +57,7 @@ travelclone/
 - `pnpm turbo build` — Build all apps
 - `pnpm turbo lint` — Run ESLint across all apps
 - `pnpm turbo typecheck` — Type-check all apps
-- `pnpm turbo test` — Run tests (if added)
+- `pnpm turbo test` — Run all tests (required after every dev story)
 - `pnpm prisma migrate dev` — Create/apply database migration
 - `pnpm prisma db seed` — Populate seed data
 - `docker compose -f docker-compose.dev.yml up -d` — Start databases locally
