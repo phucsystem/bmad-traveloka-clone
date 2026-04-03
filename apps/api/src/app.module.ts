@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { LoggerModule } from "nestjs-pino";
 import { CacheModule } from "./cache/cache.module";
 import { HealthModule } from "./health/health.module";
+import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { HealthModule } from "./health/health.module";
     }),
     CacheModule,
     HealthModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

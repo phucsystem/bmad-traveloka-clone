@@ -26,12 +26,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const exceptionResponse = exception.getResponse();
       if (typeof exceptionResponse === "object" && exceptionResponse !== null) {
         const resp = exceptionResponse as Record<string, unknown>;
-        message = (resp["message"] as string) ?? exception.message;
+
         if (resp["error"] && typeof resp["error"] === "object") {
           const errObj = resp["error"] as Record<string, unknown>;
           if (errObj["code"]) {
             code = errObj["code"] as ErrorCode;
           }
+          if (errObj["message"] && typeof errObj["message"] === "string") {
+            message = errObj["message"];
+          }
+        }
+
+        const topMessage = resp["message"];
+        if (topMessage) {
+          if (Array.isArray(topMessage)) {
+            message = (topMessage as string[]).join(", ");
+          } else if (typeof topMessage === "string") {
+            message = topMessage;
+          }
+        }
+
+        if (message === "Internal server error") {
+          message = exception.message;
         }
       } else {
         message = exception.message;
@@ -39,6 +55,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       if (status === HttpStatus.UNAUTHORIZED) code = ErrorCode.UNAUTHORIZED;
       else if (status === HttpStatus.FORBIDDEN) code = ErrorCode.FORBIDDEN;
+      else if (status === HttpStatus.TOO_MANY_REQUESTS) code = ErrorCode.UNAUTHORIZED;
       else if (status === HttpStatus.UNPROCESSABLE_ENTITY)
         code = ErrorCode.VALIDATION_ERROR;
       else if (status === HttpStatus.BAD_REQUEST)
